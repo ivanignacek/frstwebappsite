@@ -10,13 +10,15 @@ import NoDataMessage from "../components/nodata.component";
 import { filterPaginationData } from "../common/filter-pagination-data";
 import LoadMoreDataBtn from "../components/load-more.component";
 
+import "../index.css";
+
 const HomePage = () => {
 
     let [blogs, setBlog] = useState(null);
     let [trendingBlogs, setTrendingBlog] = useState(null);
-    let [ pageState, setPageState ] = useState("Accueil");
+    let [ pageState, setPageState ] = useState("Actualité");
 
-    let categories = ["Hôtel Franco", "ManyCawe", "Fondation Puene", "Youth Connekt", "Politique", "Social", "Quotidien", "test"];
+    let categories = ["Administration", "Fête", "Cérémonie", "Visite", "Excursion", "Post-Scolaire", "Péri-Scolaire", "Para-Scolaire"];
 
     const fetchLatestBlogs = ({ page = 1 }) => {
         axios
@@ -78,7 +80,7 @@ const HomePage = () => {
         setBlog(null);
 
         if(pageState == category) {
-            setPageState("Accueil");
+            setPageState("Actualité");
             return;
         }
 
@@ -90,7 +92,7 @@ const HomePage = () => {
 
         activeTabRef.current.click();
 
-        if(pageState == "Accueil"){
+        if(pageState == "Actualité"){
             fetchLatestBlogs({ page: 1 });
         } else {
             fetchBlogsByCategory({ page: 1 });
@@ -120,7 +122,7 @@ const HomePage = () => {
                                         })
                                     : <NoDataMessage message="Aucune publication publiée"/>                    
                             }
-                            <LoadMoreDataBtn state={blogs} fetchDatafun={pageState == "Accueil" ? fetchLatestBlogs : fetchBlogsByCategory} />
+                            <LoadMoreDataBtn state={blogs} fetchDatafun={pageState == "Actualité" ? fetchLatestBlogs : fetchBlogsByCategory} />
                         </>
 
                         {
@@ -153,7 +155,7 @@ const HomePage = () => {
                                         return (
                                             <button 
                                                 onClick={loadBlogByCategory} 
-                                                className={"tag " + (pageState == category ? " bg-black text-white " : " ")} 
+                                                className={"tag " + (pageState == category ? " bg-black text-white " : "")}
                                                 key={i}
                                             >
                                                 {category}
