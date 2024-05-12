@@ -1,0 +1,25 @@
+#Access-token - eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZTRmY2YxY2M5OTVkNjgwZDY0Mzg2MSIsImlhdCI6MTcwOTUwNTc3N30.YH0ZNYZxjp3L2aSN58XXUlPWr4I6f6Wp8lLWrh7rci0
+
+
+POST http://localhost:3000/signup
+Content-Type: application/json
+
+{
+    "fullname": "test",
+    "email": "test@test.",
+    "password": "Test@123"
+}
+
+# POST    http://localhost:3000/create-blog
+# Content-Type: application/json
+# Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZTRmY2YxY2M5OTVkNjgwZDY0Mzg2MSIsImlhdCI6MTcwOTUwNTc3N30.YH0ZNYZxjp3L2aSN58XXUlPWr4I6f6Wp8lLWrh7rci0
+
+# {
+#     "title": "test title @ # 123 df45 ;",
+#     "banner": "https://ecdlke.com/imageurl",
+#     "des": "this is a short des",
+#     "content": {
+#         "blocks": [1, 2]
+#     },
+#     "tags": ["tag1", "tag2"]
+# }
