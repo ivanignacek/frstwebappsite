@@ -12,6 +12,7 @@ import Blog from './Schema/Blog.js';
 //Schema import
 
 import User from "./Schema/User.js"
+import Notification from "./Schema/Notification.js"
 import { nanoid } from 'nanoid';
 // import Multer from 'multer';
 
@@ -269,19 +270,20 @@ server.get("/trending-blogs", (req, res) =>{
 
 server.post("/search-blogs", (req,res) =>{
 
-    let { tag, query, author, page } = req.body;
+    let { tag, query, author, page, limit, eliminate_blog } = req.body;
 
     let findQuery
 
     if(tag){
-        findQuery = { tags: tag, draft: false };
+        // , blog_id: { $ne: eliminate_blog }
+        findQuery = { tags: tag, draft: false, blog_id: { $ne: eliminate_blog } };
     // }else if(query){
     //     findQuery = {draft: false, title: new RegExp(query, 'i')}
     }else if(author){
         findQuery = { author, draft: false}
     }
 
-    let maxLimit = 2;
+    let maxLimit = limit ? limit : 2;
 
     Blog.find(findQuery)
     .populate("author", "personal_info.profile_img personal_info.username personal_info.fullname -_id ")
@@ -341,7 +343,7 @@ server.post('/create-blog', verifyJWT, (req, res) => {
     
     let authorId = req.user;
 
-    let {title, des, banner, tags, content, draft} = req.body
+    let {title, des, banner, tags, content, draft, id} = req.body
 
     if(!title.length){
         return res.status(403).json({error: "Vous devez définir un titre pour votre publication"})
@@ -369,27 +371,123 @@ server.post('/create-blog', verifyJWT, (req, res) => {
 
     tags = tags.map(tag => tag.toLowerCase());
 
-    let blog_id = title.replace(/[^a-zA-Z0-9]/g, '').replace(/\s+/g, "-").trim()+nanoid();
+    let blog_id = id || title.replace(/[^a-zA-Z0-9]/g, '').replace(/\s+/g, "-").trim()+nanoid();
 
-    let blog = new Blog({
-        title, des, banner, tags, content, author: authorId, blog_id, draft: Boolean(draft)
-    })
+    if(id){
 
-    blog.save().then(blog => {
-
-        let incrementVal = draft ? 0 : 1;
-
-        User.findOneAndUpdate({_id: authorId}, { $inc: {"account_info.total_posts" : incrementVal }, $push: {"blogs": blog._id} })
-        .then(user => {
-            return res.status(200).json({id: blog.blog_id})
+        Blog.findOneAndUpdate({ blog_id }, { title, des, banner, content, tags, draft: draft ? draft:false })
+        .then(() => {
+            return res.status(200).json({ id: blog_id });
         })
-        .catch(err =>{
-            return res.status(500).json({error: "Echec de mise à jour du nombre de publication"})
+        .catch(err => {
+            return res.status(500).json({ error : "err.message"});
         })
+
+    }else{
+        let blog = new Blog({
+            title, des, banner, tags, content, author: authorId, blog_id, draft: Boolean(draft)
+        })
+    
+        blog.save().then(blog => {
+    
+            let incrementVal = draft ? 0 : 1;
+    
+            User.findOneAndUpdate({_id: authorId}, { $inc: {"account_info.total_posts" : incrementVal }, $push: {"blogs": blog._id} })
+            .then(user => {
+                return res.status(200).json({id: blog.blog_id})
+            })
+            .catch(err =>{
+                return res.status(500).json({error: "Echec de mise à jour du nombre de publication"})
+            })
+    
+        })
+        .catch(err => {
+            return res.status(500).json({error: err.message})
+        })
+    }
+})
+
+    
+
+server.post("/get-blog", (req, res) => {
+
+    let { blog_id, draft, mode } = req.body;
+
+    let incrementVal = mode != 'edit' ? 1 : 0 ;
+
+    Blog.findOneAndUpdate({ blog_id }, { $inc : { "activity.total_reads": incrementVal } })
+    .populate("author","personal_info.fullname personal_info.username personal_info.profile_img")
+    .select("title des content banner activity publishedAt blog_id tags")
+    .then(blog => {
+
+        User.findOneAndUpdate({ "personal_info.username": blog.author.personal_info.username}, {
+            $inc : { "account_info.total_reads": incrementVal }
+        })
+        .catch(err => {
+            return res.status(500).json({ error: err.message});
+        })
+
+        if(blog.draft && !draft){
+            return res.status(500).json({ error: 'Vous ne pouvez pas avoir accès au brouillon'})
+        }
+
+        return res.status(200).json({ blog });
 
     })
     .catch(err => {
-        return res.status(500).json({error: err.message})
+        return res.status(500).json({ error: err.message});
+    })
+
+})
+
+server.post("/like-blog", verifyJWT, (req, res) => {
+
+    let user_id = req.user;
+
+    let { _id, islikedByUser } = req.body;
+
+    let incrementVal = !islikedByUser ? 1 : -1;
+
+    Blog.findOneAndUpdate({ _id }, { $inc: { "activity.total_likes": incrementVal }})
+    .then (blog=> {
+
+        if(!islikedByUser){
+            let like = new Notification({
+                type: "like",
+                blog: _id,
+                notification_for: blog.author,
+                user: user_id
+            })
+
+            like.save().then(notification => {
+                return res.status(200).json({ liked_by_user: true })
+            })
+        } else {
+
+            Notification.findOneAndDelete({ user: user_id, type: "like", blog: _id })
+            .then(data => {
+                return res.status(200).json({ liked_by_user: false })
+            })
+            .catch(err => {
+                return res.status(500).json({ error: err.message });
+            })
+
+        }
+    })
+
+})
+
+server.post("/isliked-by-user", verifyJWT, (req, res) => {
+
+    let user_id = req.user;
+    let { _id } = req.body;
+
+    Notification.exists({ user: user_id, type: "like", blog: _id })
+    .then(result => {
+        return res.status(200).json({result})
+    })
+    .catch(err => {
+        return res.status(500).json({ error: err.message })
     })
 
 })

@@ -1,14 +1,12 @@
 #Access-token - eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZTRmY2YxY2M5OTVkNjgwZDY0Mzg2MSIsImlhdCI6MTcwOTUwNTc3N30.YH0ZNYZxjp3L2aSN58XXUlPWr4I6f6Wp8lLWrh7rci0
 
 
-POST http://localhost:3000/signup
-Content-Type: application/json
+# POST http://localhost:3000/get-blog
+# Content-Type: application/json
 
-{
-    "fullname": "test",
-    "email": "test@test.",
-    "password": "Test@123"
-}
+# {
+#    "blog_id": "ExcursiondeslvesdelenseignementprimairedelaFondationRvlationSainteThrseZTs1U5SKKlihzGebkoTvN"
+# }
 
 # POST    http://localhost:3000/create-blog
 # Content-Type: application/json
@@ -23,3 +21,10 @@ Content-Type: application/json
 #     },
 #     "tags": ["tag1", "tag2"]
 # }
+
+POST http://localhost:3000/get-profile
+Content-Type: application/json
+
+{
+   "username": "ivanignacek"
+}
