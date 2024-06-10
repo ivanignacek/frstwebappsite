@@ -4,6 +4,7 @@ import logo from "../imgs/logo.png";
 import { useContext, useState } from "react";
 import { UserContext } from "../App";
 import UserNavigationPanel from "./user-navigation.component";
+import MenuSite from "./menu.component";
 
 const Navbar = () => {
     
@@ -19,6 +20,7 @@ const Navbar = () => {
 
 
     //Fonction de recherche à relancer plutard
+
     const handleSearch = (e) => {
         let query = e.target.value;
         console.log(e);
@@ -93,11 +95,11 @@ const Navbar = () => {
                     :
                     <>
                         <Link className="btn-dark py-2" to="/signin">
-                            Sign In
+                            Se connecter
                         </Link>
 
                         <Link className="btn-light py-2 hidden md:block" to="/signup">
-                            Sign Up
+                            S'enregistrer
                         </Link>
                     </>
                 }
@@ -105,7 +107,10 @@ const Navbar = () => {
                 
             </nav>
 
+            <MenuSite />
+
             <Outlet />
+
         </>
         
     )
